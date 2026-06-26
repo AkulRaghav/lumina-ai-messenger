@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MessageState {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  VOICE
+  FILE
+  SYSTEM
+  CALL_LOG
+}
+
+enum CallStatus {
+  RINGING
+  ONGOING
+  ENDED
+  MISSED
+  REJECTED
+}
+
+enum MediaEncryption {
+  AES_256_GCM
+  UNENCRYPTED
+}
+
+model User {
+  id         String    @id @default(cuid())
+  email      String?   @unique
+  phone      String?   @unique
+  name       String
+  avatarUrl  String?
+  password   String
+  publicKey  String?   @db.Text
+  isOnline   Boolean   @default(false)
+  lastSeen   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  sentMessages     Message[]         @relation("SentMessages")
+  chatMemberships  ChatMember[]
+  reactions        Reaction[]
+  callParticipants CallParticipant[]
+  ownedChats       Chat[]            @relation("ChatOwner")
+
+  @@index([isOnline])
+  @@map("users")
+}
+
+model Chat {
+  id         String    @id @default(cuid())
+  name       String?
+  avatarUrl  String?
+  type       String    @default("DIRECT")
+  ownerId    String?
+  owner      User?     @relation("ChatOwner", fields: [ownerId], references: [id])
+  isArchived Boolean   @default(false)
+  isPinned   Boolean   @default(false)
+  mutedUntil DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  members  ChatMember[]
+  messages Message[]
+  calls    Call[]
+
+  @@index([updatedAt])
+  @@map("chats")
+}
+
+model ChatMember {
+  id       String   @id @default(cuid())
+  chatId   String
+  userId   String
+  role     String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@map("chat_members")
+}
+
+model Message {
+  id              String          @id @default(cuid())
+  chatId          String
+  senderId        String
+  replyToId       String?
+  threadId        String?
+  content         String?         @db.Text
+  type            MessageType     @default(TEXT)
+  state           MessageState    @default(QUEUED)
+  mediaUrl        String?
+  mediaMimeType   String?
+  mediaSize       Int?
+  mediaEncryption MediaEncryption @default(UNENCRYPTED)
+  durationSec     Int?
+  isEdited        Boolean         @default(false)
+  editedAt        DateTime?
+  deletedForAll   Boolean         @default(false)
+  metadata        Json?
+  createdAt       DateTime        @default(now())
+
+  chat     Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender   User       @relation("SentMessages", fields: [senderId], references: [id])
+  replyTo  Message?   @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies  Message[]  @relation("MessageReplies")
+  reactions Reaction[]
+
+  @@index([chatId, createdAt(sort: Desc)])
+  @@index([replyToId])
+  @@map("messages")
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@map("reactions")
+}
+
+model Call {
+  id          String     @id @default(cuid())
+  chatId      String
+  callerId    String
+  status      CallStatus @default(RINGING)
+  type        String     @default("AUDIO")
+  startedAt   DateTime?
+  endedAt     DateTime?
+  durationSec Int?
+  createdAt   DateTime   @default(now())
+
+  chat         Chat              @relation(fields: [chatId], references: [id])
+  participants CallParticipant[]
+
+  @@index([chatId, createdAt(sort: Desc)])
+  @@map("calls")
+}
+
+model CallParticipant {
+  id       String    @id @default(cuid())
+  callId   String
+  userId   String
+  joinedAt DateTime?
+  leftAt   DateTime?
+
+  call Call @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([callId, userId])
+  @@map("call_participants")
+}
