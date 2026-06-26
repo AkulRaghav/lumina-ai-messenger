@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lumina-config
+  namespace: lumina-prod
+data:
+  NATS_URL: "nats://nats-cluster.lumina-prod.svc:4222"
+  REDIS_URL: "redis://redis-master.lumina-prod.svc:6379"
+  QDRANT_HOST: "qdrant-svc.lumina-prod.svc"
+  NODE_ENV: "production"
