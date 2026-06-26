@@ -1,0 +1,21 @@
+{
+  "name": "lumina-media-processor",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node dist/main.js",
+    "start:dev": "ts-node src/main.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "nats": "^2.22.0",
+    "@aws-sdk/client-s3": "^3.400.0",
+    "sharp": "^0.33.0",
+    "fluent-ffmpeg": "^2.1.0",
+    "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.2",
+    "ts-node": "^10.9.2",
+    "@types/node": "^20.10.0"
+  }
+}
