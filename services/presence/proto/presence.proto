@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package presence;
+
+option go_package = "./proto";
+
+service PresenceService {
+  rpc UpdateStatus(StatusUpdate) returns (Ack);
+  rpc StreamTyping(TypingEvent) returns (stream TypingBroadcast);
+  rpc WatchUserStatus(UserRequest) returns (stream StatusUpdate);
+}
+
+message StatusUpdate {
+  string user_id = 1;
+  string status = 2; // ONLINE, AWAY, DND, OFFLINE
+  int64 timestamp = 3;
+}
+
+message TypingEvent {
+  string user_id = 1;
+  string chat_id = 2;
+  bool is_typing = 3;
+}
+
+message TypingBroadcast {
+  string user_id = 1;
+  string chat_id = 2;
+  bool is_typing = 3;
+  int64 expires_at = 4;
+}
+
+message UserRequest {
+  string user_id = 1;
+}
+
+message Ack {
+  bool success = 1;
+}
