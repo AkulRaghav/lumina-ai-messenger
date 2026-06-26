@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lumina-ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lumina-ai
+  template:
+    metadata:
+      labels:
+        app: lumina-ai
+    spec:
+      containers:
+        - name: ai-cognition
+          image: lumina/ai-cognition:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: lumina-secrets
+                  key: openai-key
+            - name: NATS_URL
+              value: "nats://nats-svc:4222"
+            - name: QDRANT_HOST
+              value: "qdrant-svc"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lumina-ai-svc
+spec:
+  selector:
+    app: lumina-ai
+  ports:
+    - port: 80
+      targetPort: 8000
