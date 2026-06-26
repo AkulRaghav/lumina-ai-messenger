@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.dart_tool/
+.packages
+
+# Build outputs
+dist/
+build/
+*.js.map
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.gr.dart
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flutter
+clients/mobile/.flutter-plugins
+clients/mobile/.flutter-plugins-dependencies
+
+# Go
+services/gateway/bin/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Docker volumes
+pgdata/
+qdrant_storage/
+
+# Prisma
+services/api/src/prisma/migrations/
+
+# Coverage
+coverage/
+.nyc_output/
+htmlcov/
