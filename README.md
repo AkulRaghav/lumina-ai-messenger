@@ -1,5 +1,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white" />
+  <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" />
   <img src="https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
@@ -7,6 +8,9 @@
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
+  <img src="https://img.shields.io/badge/TanStack-FF4154?style=for-the-badge&logo=reactquery&logoColor=white" />
 </p>
 
 <h1 align="center">Lumina</h1>
@@ -95,10 +99,14 @@
 
 | Technology | Purpose |
 |-----------|---------|
-| Flutter 3.22 | Cross-platform UI (Android, iOS, Web, Windows, macOS) |
+| Flutter 3.22 | Cross-platform mobile UI (Android, iOS) |
 | Riverpod | Reactive state management |
 | GoRouter | Declarative routing with auth guards |
 | Flutter Animate | 120fps micro-interactions |
+| **React 19 + TanStack Start** | **Web client — 40+ screens, SSR, server functions** |
+| **Vite 8** | **Build tooling, HMR, ESM-native** |
+| **Tailwind CSS 4** | **Utility-first styling with glassmorphism design system** |
+| **Prisma + SQLite** | **Web backend — 12 models, full CRUD** |
 
 ### Infrastructure
 
@@ -320,6 +328,70 @@ User ──┬── ChatMember ──── Chat ──── Message ───
 | Profile | Glowing avatar, E2EE badge, stats, navigation |
 | Settings | Dark mode, biometrics, screenshot blocking, cache management, logout |
 | AI Tools | Semantic search, summarize, translate, grammar, smart replies |
+
+---
+
+## Web Client (TanStack Start)
+
+The `lumina-connect-bright/` directory contains the full-featured web client — a 40+ screen messaging app with a complete backend powered by TanStack Start server functions and Prisma/SQLite.
+
+### Architecture
+
+```
+lumina-connect-bright/
+├── src/
+│   ├── routes/index.tsx        # All 40+ screens (single-page app with custom nav)
+│   └── routes/api/auth/google/ # Google OAuth callback
+├── backend/
+│   ├── prisma/schema.prisma    # 12 Prisma models
+│   ├── db.ts                   # Prisma client singleton
+│   ├── auth.ts                 # Password hashing (scrypt), session management
+│   └── api/                    # 13 server function modules
+│       ├── auth.ts             # register, login, logout, session check
+│       ├── google.ts           # Google OAuth (authorization code flow)
+│       ├── profile.ts          # get/update profile
+│       ├── contacts.ts         # search users, add/remove contacts
+│       ├── conversations.ts    # create DMs, list conversations, mark read
+│       ├── messages.ts         # send, paginate, poll for new messages
+│       ├── groups.ts           # create groups, add/remove members
+│       ├── communities.ts      # create/join/leave communities
+│       ├── calls.ts            # call logging and history
+│       ├── media.ts            # file metadata, storage stats
+│       ├── notifications.ts    # notification feed, mark read
+│       ├── preferences.ts      # user settings persistence
+│       ├── premium.ts          # subscription management
+│       └── ai.ts               # AI chat with contextual responses
+└── data/lumina.db              # SQLite database (auto-created)
+```
+
+### Database Models (12)
+
+`User` · `Session` · `Contact` · `Conversation` · `ConversationParticipant` · `Message` · `Community` · `CommunityMember` · `Call` · `MediaFile` · `Notification` · `UserPreferences` · `AiMessage`
+
+### Key Features
+
+- **Auth**: Email/password + Google OAuth, httpOnly session cookies, 30-day TTL
+- **Messaging**: 1:1 and group chats, message persistence, 3-second polling for real-time updates
+- **AI Assistant**: Built-in contextual response engine (rewrite, translate, summarize, code, schedule)
+- **Premium**: Simulated subscription flow with plan persistence
+- **Settings**: Theme/accent/language/notification preferences persist across sessions
+- **40+ Screens**: All wired to real backend with graceful fallback to demo data
+
+### Quick Start (Web Client)
+
+```bash
+cd lumina-connect-bright
+bun install          # installs deps + generates Prisma client
+bun run db:push      # creates SQLite database
+bun run dev          # starts at http://localhost:5173
+```
+
+For Google OAuth, create a `.env` file:
+```
+GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-secret
+GOOGLE_REDIRECT_URI=http://localhost:5173/api/auth/google/callback
+```
 
 ---
 
