@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../../data/lumina.db"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  username     String    @unique
+  fullName     String
+  passwordHash String
+  phone        String?
+  bio          String?
+  status       String?
+  avatarUrl    String?
+  interests    String?   // JSON array stored as string
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+  contacts     Contact[] @relation("UserContacts")
+  contactOf    Contact[] @relation("ContactOf")
+  participants  ConversationParticipant[]
+  messages      Message[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserContacts", fields: [userId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   User     @relation("ContactOf", fields: [contactId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, contactId])
+}
+
+model Conversation {
+  id           String    @id @default(cuid())
+  isGroup      Boolean   @default(false)
+  name         String?   // Only for group chats
+  lastMessage  String?
+  lastAt       DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  text           String?
+  emoji          String?
+  sticker        String?
+  replyToId      String?
+  createdAt      DateTime     @default(now())
+}
+
+model Community {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(true)
+  memberCount Int      @default(0)
+  createdById String
+  createdAt   DateTime @default(now())
+  members     CommunityMember[]
+}
+
+model CommunityMember {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      String
+  role        String    @default("member") // "admin", "moderator", "member"
+  joinedAt    DateTime  @default(now())
+
+  @@unique([communityId, userId])
+}
+
+model Call {
+  id         String   @id @default(cuid())
+  callerId   String
+  receiverId String
+  type       String   @default("voice") // "voice" or "video"
+  status     String   @default("completed") // "completed", "missed", "declined"
+  direction  String   @default("outgoing") // from caller's perspective
+  duration   Int      @default(0) // seconds
+  startedAt  DateTime @default(now())
+  endedAt    DateTime?
+}
+
+model MediaFile {
+  id             String   @id @default(cuid())
+  userId         String
+  conversationId String?
+  messageId      String?
+  filename       String
+  mimeType       String
+  sizeBytes      Int
+  type           String   @default("photo") // "photo", "video", "document", "voice", "gif"
+  url            String   // relative path to stored file
+  createdAt      DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "reaction", "reply", "call", "ai", "follow", "system"
+  title     String
+  body      String?
+  read      Boolean  @default(false)
+  data      String?  // JSON payload for navigation/context
+  createdAt DateTime @default(now())
+}
+
+model UserPreferences {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  pushEnabled      Boolean @default(true)
+  callsEnabled     Boolean @default(true)
+  mentionsEnabled  Boolean @default(true)
+  aiSuggestions    Boolean @default(false)
+  notifSound       String  @default("aurora")
+  doNotDisturb     Boolean @default(false)
+  language         String  @default("en-US")
+  theme            String  @default("dark")
+  accent           String  @default("aurora")
+  premiumPlan      String? // "month", "year", or null
+  premiumStartedAt String? // ISO date string
+  premiumTrialUsed Boolean @default(false)
+}
+
+model AiMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String   // "user" or "assistant"
+  content   String
+  createdAt DateTime @default(now())
+}
